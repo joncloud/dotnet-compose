@@ -1,5 +1,7 @@
 version: '2'
 services:
+    db:
+        image: postgres
     web:
         build: src/dotnet-compose
         command: dotnet run
@@ -10,3 +12,4 @@ services:
         environment:
             ASPNETCORE_ENVIRONMENT: Development
             ASPNETCORE_URLS: http://*:5000
+            ConnectionStrings__DefaultConnection: User ID=postgres;Host=db;Database=postgres
