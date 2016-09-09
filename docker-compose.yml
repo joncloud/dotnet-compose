@@ -1,0 +1,12 @@
+version: '2'
+services:
+    web:
+        build: src/dotnet-compose
+        command: dotnet run
+        ports:
+            - "5000:5000"
+        depends_on:
+            - db
+        environment:
+            ASPNETCORE_ENVIRONMENT: Development
+            ASPNETCORE_URLS: http://*:5000
