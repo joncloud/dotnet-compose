@@ -55,6 +55,7 @@ RUN mkdir /myapp
 WORKDIR /myapp
 
 ADD project.json /myapp/project.json
+ADD project.lock.json /myapp/project.lock.json
 RUN dotnet restore
 
 ADD . /myapp
@@ -67,7 +68,7 @@ First, Compose will build the image for the `web` service using the `Dockerfile`
   total 88
   drwxr-xr-x  5 user  staff   170 Sep  9 13:07 Controllers
   drwxr-xr-x  4 user  staff   136 Sep  9 13:07 Data
-  -rw-r--r--  1 user  staff   130 Sep  9 13:06 Dockerfile
+  -rw-r--r--  1 user  staff    68 Sep  9 13:06 Dockerfile
   drwxr-xr-x  5 user  staff   170 Sep  9 13:07 Models
   -rwxr--r--  1 user  staff   550 Jun 21 20:31 Program.cs
   -rwxr--r--  1 user  staff  2190 Jun 21 20:31 README.md
@@ -76,7 +77,7 @@ First, Compose will build the image for the `web` service using the `Dockerfile`
   drwxr-xr-x  8 user  staff   272 Sep  9 13:07 Views
   -rwxr--r--  1 user  staff   252 Jun 21 20:31 appsettings.json
   -rwxr--r--  1 user  staff   204 Jun 21 20:31 bower.json
-  -rw-r--r--  1 user  staff   432 Sep  9 13:07 docker-compose.yml
+  -rw-r--r--  1 user  staff   338 Sep  9 13:07 docker-compose.yml
   -rwxr--r--  1 user  staff  1148 Jun 21 20:31 gulpfile.js
   -rwxr--r--  1 user  staff   227 Jun 21 20:31 package.json
   -rwxr--r--  1 user  staff  3211 Jun 21 20:31 project.json
@@ -117,6 +118,24 @@ Update `Startup.cs` to change the database connection to use PostgreSQL instead 
     }
 ```
 
+Create `project.lock.json` as a simple json file:
+
+```json
+{}
+```
+
+Now that you’ve got a new `project.json`, you need to build the image again. (This, and changes to the Dockerfile itself, should be the only times you’ll need to rebuild.)
+
+```bash
+$ docker-compose build
+```
+
+To ensure that the lock file gets updated with restored packages run `dotnet restore`:
+
+```bash
+$ docker-compose run web dotnet restore
+```
+
 ## Connect the database
 The app is now bootable, but you’re not quite there yet. By default, .NET Core expects a database to be running on `localhost` - so you need to point it at the `db` container instead. You also need to change the database and username to align with the defaults set by the `postgres` image.
 
@@ -139,13 +158,22 @@ $ docker-compose up
 If all’s well, you should see some PostgreSQL output, and then—after a few seconds—the familiar refrain:
 
 ```bash
-myapp_web_1  | Project myapp (.NETCoreApp,Version=v1.0) was previously compiled. Skipping compilation.
-myapp_web_1  | info: Microsoft.Extensions.DependencyInjection.DataProtectionServices[0]
-myapp_web_1  |       User profile is available. Using '/root/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
-myapp_web_1  | Hosting environment: Development
-myapp_web_1  | Content root path: /myapp
-myapp_web_1  | Now listening on: http://*:5000
-myapp_web_1  | Application started. Press Ctrl+C to shut down.
+web_1  | Project myapp (.NETCoreApp,Version=v1.0) will be compiled because expected outputs are missing                                                                                                                     
+web_1  | Compiling myapp for .NETCoreApp,Version=v1.0                                                                            
+web_1  |                                                                                                                         
+web_1  | Compilation succeeded.                                                                                                  
+web_1  |     0 Warning(s)                                                                                                        
+web_1  |     0 Error(s)                                                                                                          
+web_1  |                                                                                                                         
+web_1  | Time elapsed 00:00:04.6780194                                                                                           
+web_1  |                                                                                                                         
+web_1  |                                                                                                                         
+web_1  | info: Microsoft.Extensions.DependencyInjection.DataProtectionServices[0]                                                
+web_1  |       User profile is available. Using '/root/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.                                                                                  
+web_1  | Hosting environment: Development                                                                                        
+web_1  | Content root path: /myapp                                                                                               
+web_1  | Now listening on: http://*:5000                                                                                         
+web_1  | Application started. Press Ctrl+C to shut down.
 ```
 
 Finally, you need to create the database. In another terminal, run:
